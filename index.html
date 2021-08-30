@@ -1,0 +1,157 @@
+<document>
+    <html>
+    <head>
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <title>Antwatch</title>
+        <script>
+            $(document).ready(function () {
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+                var radius = canvas.height / 2;
+                radius = radius * 0.9;
+
+                setInterval(draw, 200);
+
+                function cycle(max, counter) {
+                    counter = counter % max;
+                    if (counter >= max / 2)
+                        counter = max - counter;
+                    return counter;
+                }
+
+                function rgb(r, g, b) {
+                    return "rgb(" + r + "," + g + "," + b + ")";
+                }
+
+                var time = 0;
+                function draw() {
+                    time++;
+                    // Fill with gradient
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(10, 10, 150, 100);
+                    ctx.rect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "gray";
+                    ctx.fill();
+                    var grd = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 1 + cycle(250, time * 25), canvas.width / 2, canvas.height / 2, canvas.height);
+                    grd.addColorStop(0, rgb(cycle(250, time * 5 + 50), cycle(250, time * 22), cycle(250, time * 2 + 150)));
+                    grd.addColorStop(1, rgb(cycle(250, time * 3 + 250), cycle(250, time * 7 + 30), cycle(250, time * 9 + 100)));
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.save();
+                    ctx.translate(radius, radius);
+                    drawTime(ctx, radius);
+                    drawBody();
+
+                    drawNumbers(ctx, radius,"white");
+                    ctx.translate(-1, -1);
+                    drawNumbers(ctx, radius, "black");
+                    ctx.translate(1, 1);
+
+                    ctx.restore();
+                }
+                function drawBody() {
+                    var tim = new Date().getMilliseconds();
+                    var sec = (tim % 3) / 3 * 5;
+                    var eye = (tim % 10);
+                    eye = (eye > 3) ? (eye < 7 ? 0 : 3) : -3;
+                    ctx.drawImage(document.getElementById("imgEyes"), -105 + eye, -190);
+                    ctx.drawImage(document.getElementById("imgBody"), -105, -190);
+                    ctx.drawImage(document.getElementById("imgMouth"), -105, -190 + sec);
+                }
+
+                function drawNumbers(ctx, radius, color) {
+                    ctx.fillStyle = color;
+                    var ang;
+                    var num;
+                    ctx.font = radius * 0.15 + "px arial";
+                    ctx.textBaseline = "middle";
+                    ctx.textAlign = "center";
+                    for (num = 1; num < 13; num++) {
+                        ang = num * Math.PI / 6;
+                        ctx.rotate(ang);
+                        ctx.translate(0, -radius * 0.85);
+                        ctx.rotate(-ang);
+                        ctx.fillText(num.toString(), 0, 0);
+                        ctx.rotate(ang);
+                        ctx.translate(0, radius * 0.85);
+                        ctx.rotate(-ang);
+                    }
+                }
+
+                function drawTime(ctx, radius) {
+                    ctx.fillStyle = "black";
+                    var now = new Date();
+                    var hour = now.getHours();
+                    var minute = now.getMinutes();
+                    var second = now.getSeconds();
+
+                    var split = 50;
+                    //hour
+                    hour = hour % 12;
+                    hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+                    ctx.translate(split, 0);
+                    drawHand(ctx, 3, hour, radius * 0.5, radius * 0.07);
+                    //minute
+                    minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+                    ctx.translate(-2 * split, 0);
+                    drawHand(ctx, 2, minute, radius * 0.8, radius * 0.07);
+
+                    ctx.translate(split, 0);
+                    // second
+                    second = (second * Math.PI / 30);
+                    drawHand(ctx, 4, second, radius * 0.9, radius * 0.02);
+                }
+
+                function drawHand(ctx, side, pos, length, width) {
+                    //ctx.beginPath();
+                    //ctx.lineWidth = width;
+                    //ctx.lineCap = "round";
+                    //ctx.moveTo(0, 0);
+                    //ctx.rotate(pos);
+                    //ctx.lineTo(0, -length);
+                    //ctx.stroke();
+                    //ctx.rotate(-pos);
+                    drawRotatedImage(document.getElementById("imgArm" + side), 0, 0, pos)
+                }
+
+                function drawRotatedImage(image, x, y, angle) {
+
+                    // save the current co-ordinate system
+                    // before we screw with it
+                    ctx.save();
+
+                    // move to the middle of where we want to draw our image
+                    ctx.translate(x, y);
+
+                    // rotate around that point, converting our
+                    // angle from degrees to radians
+                    ctx.rotate(angle);
+
+                    // draw it up and to the left by half the width
+                    // and height of the image
+                    //ctx.drawImage(image, -(image.width / 2), -(image.height / 2));
+                    ctx.drawImage(image, -(image.width / 2), -(image.height / 2));
+
+                    // and restore the co-ords to how they were when we began
+                    ctx.restore();
+                }
+            });
+        </script>
+    </head>
+    <body style="background-color:black;">
+        <center>
+            <canvas class="canvas" id="canvas" width="600" height="600"></canvas>
+        </center>
+        <div hidden>
+            <img id="imgBody" src="Body.png" />
+            <img id="imgMouth" src="Mouth.png" />
+            <img id="imgEyes" src="Eyes.png" />
+            <img id="imgArm1" src="ArmRight.png" />
+            <img id="imgArm2" src="ArmLeft.png" />
+            <img id="imgArm3" src="ArmFat.png" />
+            <img id="imgArm4" src="ArmSkinny.png" />
+        </div>
+    </body>
+</html>
+</document>
